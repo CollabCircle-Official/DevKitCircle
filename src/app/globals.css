@@ -1145,6 +1145,47 @@ footer {
   border-radius: 8px;
   object-fit: contain;
 }
+.image-result > div {
+  min-width: 0;
+}
+.image-result strong,
+.image-result span {
+  display: block;
+}
+.image-result strong {
+  overflow-wrap: anywhere;
+}
+.image-result span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.image-presets {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 10px 0 14px;
+}
+.image-presets label {
+  margin-right: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.image-presets button {
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.image-presets button:hover {
+  border-color: #7fb7dc;
+  color: var(--indigo);
+}
 .tool-note,
 .hex-library-note {
   color: var(--muted);

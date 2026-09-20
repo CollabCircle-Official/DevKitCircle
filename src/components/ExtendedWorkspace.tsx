@@ -1,10 +1,11 @@
 /* eslint-disable @next/next/no-img-element -- previews use runtime-generated data URLs */
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Ajv from "ajv";
 import { diffLines, diffJson } from "diff";
 import QRCode from "qrcode";
 import jsQR from "jsqr";
+import { applyPalette, GIFEncoder, quantize } from "gifenc";
 import { Play, Plus, Trash2 } from "lucide-react";
 import type { ToolId } from "@/types";
 import { CopyButton, Editor, ErrorBox, FileButton, Select } from "./ToolUI";
@@ -619,83 +620,194 @@ function QrTool() {
 function ImageTool() {
   const [file, setFile] = useState<File | null>(null),
     [width, setWidth] = useState(0),
-    [quality, setQuality] = useState(0.85),
-    [format, setFormat] = useState("image/webp"),
+    [height, setHeight] = useState(0),
+    [sourceWidth, setSourceWidth] = useState(0),
+    [sourceHeight, setSourceHeight] = useState(0),
+    [lockRatio, setLockRatio] = useState(true),
+    [quality, setQuality] = useState(85),
+    [format, setFormat] = useState("webp"),
+    [background, setBackground] = useState("#ffffff"),
     [output, setOutput] = useState(""),
+    [outputName, setOutputName] = useState("converted.webp"),
+    [outputInfo, setOutputInfo] = useState(""),
     [info, setInfo] = useState(""),
-    [average, setAverage] = useState("");
+    [average, setAverage] = useState(""),
+    [error, setError] = useState("");
+  useEffect(
+    () => () => {
+      if (output) URL.revokeObjectURL(output);
+    },
+    [output],
+  );
   async function load(f: File) {
-    const bitmap = await createImageBitmap(f);
-    setFile(f);
-    setWidth(bitmap.width);
-    setInfo(
-      `${bitmap.width} × ${bitmap.height} · ${f.type || "unknown"} · ${(f.size / 1024).toFixed(1)} KB`,
-    );
-    const sample = document.createElement("canvas");
-    sample.width = 32;
-    sample.height = 32;
-    const context = sample.getContext("2d")!;
-    context.drawImage(bitmap, 0, 0, 32, 32);
-    const pixels = context.getImageData(0, 0, 32, 32).data;
-    let red = 0,
-      green = 0,
-      blue = 0;
-    for (let index = 0; index < pixels.length; index += 4) {
-      red += pixels[index];
-      green += pixels[index + 1];
-      blue += pixels[index + 2];
+    try {
+      setError("");
+      const bitmap = await createImageBitmap(f);
+      setFile(f);
+      setWidth(bitmap.width);
+      setHeight(bitmap.height);
+      setSourceWidth(bitmap.width);
+      setSourceHeight(bitmap.height);
+      setInfo(
+        `${bitmap.width} × ${bitmap.height} · ${f.type || "image/unknown"} · ${(f.size / 1024).toFixed(1)} KB`,
+      );
+      const sample = document.createElement("canvas");
+      sample.width = 32;
+      sample.height = 32;
+      const context = sample.getContext("2d")!;
+      context.drawImage(bitmap, 0, 0, 32, 32);
+      const pixels = context.getImageData(0, 0, 32, 32).data;
+      let red = 0,
+        green = 0,
+        blue = 0;
+      for (let index = 0; index < pixels.length; index += 4) {
+        red += pixels[index];
+        green += pixels[index + 1];
+        blue += pixels[index + 2];
+      }
+      const count = pixels.length / 4;
+      setAverage(
+        `#${[red / count, green / count, blue / count]
+          .map((value) => Math.round(value).toString(16).padStart(2, "0"))
+          .join("")
+          .toUpperCase()}`,
+      );
+      bitmap.close();
+    } catch (cause) {
+      setError(`This browser could not decode the image. ${err(cause)}`);
     }
-    const count = pixels.length / 4;
-    setAverage(
-      `#${[red / count, green / count, blue / count]
-        .map((value) => Math.round(value).toString(16).padStart(2, "0"))
-        .join("")
-        .toUpperCase()}`,
-    );
+  }
+  function updateWidth(value: number) {
+    const next = Math.max(1, Math.round(value || 1));
+    setWidth(next);
+    if (lockRatio && sourceWidth)
+      setHeight(Math.max(1, Math.round((next * sourceHeight) / sourceWidth)));
+  }
+  function updateHeight(value: number) {
+    const next = Math.max(1, Math.round(value || 1));
+    setHeight(next);
+    if (lockRatio && sourceHeight)
+      setWidth(Math.max(1, Math.round((next * sourceWidth) / sourceHeight)));
+  }
+  function scale(percent: number) {
+    setWidth(Math.max(1, Math.round((sourceWidth * percent) / 100)));
+    setHeight(Math.max(1, Math.round((sourceHeight * percent) / 100)));
   }
   async function convert() {
     if (!file) return;
-    const bitmap = await createImageBitmap(file),
-      ratio = width / bitmap.width,
-      canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = Math.round(bitmap.height * ratio);
-    canvas
-      .getContext("2d")!
-      .drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    setOutput(canvas.toDataURL(format, quality));
+    try {
+      setError("");
+      if (width * height > 40_000_000)
+        throw new Error("Output is limited to 40 megapixels for browser safety.");
+      const bitmap = await createImageBitmap(file),
+        canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d", { alpha: true })!;
+      if (["jpg", "jpeg", "jfif"].includes(format)) {
+        context.fillStyle = background;
+        context.fillRect(0, 0, width, height);
+      }
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = "high";
+      context.drawImage(bitmap, 0, 0, width, height);
+      bitmap.close();
+      let blob: Blob;
+      if (format === "gif") {
+        const rgba = context.getImageData(0, 0, width, height).data,
+          colors = Math.max(32, Math.min(256, Math.round(quality * 2.56))),
+          palette = quantize(rgba, colors, { format: "rgba4444" }),
+          indexed = applyPalette(rgba, palette, "rgba4444"),
+          gif = GIFEncoder();
+        gif.writeFrame(indexed, width, height, { palette, transparent: true });
+        gif.finish();
+        const gifBuffer = Uint8Array.from(gif.bytes()).buffer;
+        blob = new Blob([gifBuffer], { type: "image/gif" });
+      } else if (format === "svg") {
+        const png = canvas.toDataURL("image/png"),
+          markup = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><image width="100%" height="100%" href="${png}"/></svg>`;
+        blob = new Blob([markup], { type: "image/svg+xml" });
+      } else {
+        const mime =
+          format === "png"
+            ? "image/png"
+            : format === "webp"
+              ? "image/webp"
+              : "image/jpeg";
+        blob = await new Promise<Blob>((resolve, reject) =>
+          canvas.toBlob(
+            (value) =>
+              value ? resolve(value) : reject(new Error("Encoding failed.")),
+            mime,
+            quality / 100,
+          ),
+        );
+      }
+      const url = URL.createObjectURL(blob),
+        base = file.name.replace(/\.[^.]+$/, "") || "converted";
+      setOutput(url);
+      setOutputName(`${base}.${format}`);
+      setOutputInfo(`${width} × ${height} · ${(blob.size / 1024).toFixed(1)} KB`);
+    } catch (cause) {
+      setError(err(cause));
+    }
   }
   return (
     <>
       <div className="toolbar">
-        <FileButton accept="image/png,image/jpeg,image/webp" onFile={load} />
+        <FileButton
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,.jfif"
+          onFile={load}
+        />
         {file && (
           <>
             <label className="field compact">
               <span>Width</span>
               <input
                 type="number"
+                min="1"
+                max="16384"
                 value={width}
-                onChange={(e) => setWidth(+e.target.value)}
+                onChange={(e) => updateWidth(+e.target.value)}
+              />
+            </label>
+            <label className="field compact">
+              <span>Height</span>
+              <input
+                type="number"
+                min="1"
+                max="16384"
+                value={height}
+                onChange={(e) => updateHeight(+e.target.value)}
               />
             </label>
             <Select
               label="Format"
               value={format}
               onChange={setFormat}
-              options={["image/webp", "image/png", "image/jpeg"]}
+              options={["png", "jpg", "jpeg", "webp", "svg", "jfif", "gif"]}
             />
             <label className="field compact">
-              <span>Quality</span>
+              <span>Quality · {quality}%</span>
               <input
-                type="number"
-                min="0.1"
-                max="1"
-                step="0.05"
+                type="range"
+                min="10"
+                max="100"
+                step="1"
                 value={quality}
                 onChange={(e) => setQuality(+e.target.value)}
               />
             </label>
+            {["jpg", "jpeg", "jfif"].includes(format) && (
+              <label className="field compact">
+                <span>Background</span>
+                <input
+                  type="color"
+                  value={background}
+                  onChange={(e) => setBackground(e.target.value)}
+                />
+              </label>
+            )}
             <button className="button primary" onClick={convert}>
               Convert
             </button>
@@ -707,19 +819,41 @@ function ImageTool() {
           {file?.name} · {info} · Average {average} · Export strips metadata
         </div>
       )}
+      {file && (
+        <div className="image-presets">
+          <label>
+            <input
+              type="checkbox"
+              checked={lockRatio}
+              onChange={(e) => setLockRatio(e.target.checked)}
+            />{" "}
+            Lock aspect ratio
+          </label>
+          {[25, 50, 75, 100, 200].map((percent) => (
+            <button key={percent} onClick={() => scale(percent)}>
+              {percent}%
+            </button>
+          ))}
+        </div>
+      )}
+      {error && <ErrorBox message={error} />}
       {output && (
         <div className="image-result">
           <img src={output} alt="Converted preview" />
-          <a
-            className="button secondary"
-            href={output}
-            download={`converted.${format.split("/")[1]}`}
-          >
-            Download
-          </a>
-          <CopyButton value={output} label="Copy data URL" />
+          <div>
+            <strong>{outputName}</strong>
+            <span>{outputInfo}</span>
+            <a className="button secondary" href={output} download={outputName}>
+              Download
+            </a>
+          </div>
         </div>
       )}
+      <p className="tool-note">
+        PNG, JPG/JPEG, JFIF, WebP, SVG, and GIF are processed entirely in your
+        browser. GIF export creates a still image; importing an animated GIF
+        uses its first frame.
+      </p>
     </>
   );
 }

@@ -225,11 +225,11 @@ export const tools: ToolDefinition[] = [
   },
   {
     id: "image",
-    title: "Local Image Toolkit",
-    description: "Resize, convert, compress, and inspect images.",
+    title: "Image Converter & Resizer",
+    description: "Convert PNG, JPEG, WebP, SVG, JFIF, and GIF locally.",
     category: "Converters",
     icon: ImageIcon,
-    tags: ["image", "webp", "jpeg", "resize", "metadata"],
+    tags: ["image", "png", "jpg", "jpeg", "webp", "svg", "jfif", "gif", "resize", "quality"],
   },
   {
     id: "encoding-lab",

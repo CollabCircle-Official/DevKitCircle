@@ -29,7 +29,7 @@ JWT contents are decoded, not signature-verified. Decoding does not prove that a
 
 | Category          | Utilities                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------ |
-| Converters        | JSON/YAML/TOML, ENV, CSV/Markdown, timestamps, local images, gzip/deflate/ZIP                          |
+| Converters        | JSON/YAML/TOML, ENV, CSV/Markdown, timestamps, PNG/JPEG/JFIF/WebP/SVG/GIF images, gzip/deflate/ZIP     |
 | Security & Hashes | Base64/URL/HTML, JWT, hashes, binary encodings, HMAC, AES-GCM, PKCE, SRI, RSA/ECDSA and PEM inspection |
 | Formatters        | JSON/SQL formatting and regex inspection                                                               |
 | Network           | CURL conversion, URL parsing, HTTP statuses, IPv4/CIDR calculation                                     |
