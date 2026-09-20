@@ -1,4 +1,4 @@
-const CACHE = "devkitcircle-v1";
+const CACHE = "devkitcircle-v2";
 const CORE = ["/", "/manifest.webmanifest", "/devkitcircle-logo.png"];
 
 self.addEventListener("install", (event) => {
@@ -20,22 +20,34 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
   if (
     event.request.method !== "GET" ||
-    new URL(event.request.url).origin !== location.origin
+    url.origin !== location.origin ||
+    event.request.headers.has("range")
   )
     return;
   event.respondWith(
     fetch(event.request)
-      .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+      .then(async (response) => {
+        const cacheControl = response.headers.get("cache-control") || "";
+        if (
+          response.ok &&
+          response.type === "basic" &&
+          !cacheControl.includes("no-store")
+        ) {
+          const cache = await caches.open(CACHE);
+          await cache.put(event.request, response.clone());
+        }
         return response;
       })
-      .catch(() =>
-        caches
-          .match(event.request)
-          .then((cached) => cached || caches.match("/")),
-      ),
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        if (event.request.mode === "navigate") {
+          return (await caches.match("/")) || Response.error();
+        }
+        return Response.error();
+      }),
   );
 });

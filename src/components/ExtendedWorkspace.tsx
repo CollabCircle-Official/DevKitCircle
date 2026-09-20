@@ -642,6 +642,15 @@ function ImageTool() {
   async function load(f: File) {
     try {
       setError("");
+      if (f.type === "image/svg+xml" || f.name.toLowerCase().endsWith(".svg")) {
+        const svg = await f.text();
+        const unsafeSvgReference =
+          /<script\b|on\w+\s*=|javascript\s*:|(?:href|xlink:href)\s*=\s*["'](?!#|data:image\/)|url\s*\(\s*["']?(?!#|data:image\/)/i;
+        if (unsafeSvgReference.test(svg))
+          throw new Error(
+            "SVG files containing scripts, event handlers, or external resources are blocked.",
+          );
+      }
       const bitmap = await createImageBitmap(f);
       setFile(f);
       setWidth(bitmap.width);

@@ -23,17 +23,30 @@ const ToolWorkspace = dynamic(
   },
 );
 
+function safePublicUrl(value: string | undefined) {
+  if (!value) return undefined;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+      ? parsed.href
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // These references must remain static so Next.js can replace them at build time.
 const socials = [
-  { name: "Website", url: process.env.NEXT_PUBLIC_WEBSITE },
-  { name: "LinkedIn", url: process.env.NEXT_PUBLIC_LINKEDIN },
-  { name: "Facebook", url: process.env.NEXT_PUBLIC_FACEBOOK },
-  { name: "X", url: process.env.NEXT_PUBLIC_X },
-  { name: "Instagram", url: process.env.NEXT_PUBLIC_INSTAGRAM },
-  { name: "YouTube", url: process.env.NEXT_PUBLIC_YOUTUBE },
+  { name: "Website", url: safePublicUrl(process.env.NEXT_PUBLIC_WEBSITE) },
+  { name: "LinkedIn", url: safePublicUrl(process.env.NEXT_PUBLIC_LINKEDIN) },
+  { name: "Facebook", url: safePublicUrl(process.env.NEXT_PUBLIC_FACEBOOK) },
+  { name: "X", url: safePublicUrl(process.env.NEXT_PUBLIC_X) },
+  { name: "Instagram", url: safePublicUrl(process.env.NEXT_PUBLIC_INSTAGRAM) },
+  { name: "YouTube", url: safePublicUrl(process.env.NEXT_PUBLIC_YOUTUBE) },
 ].filter((social): social is { name: string; url: string } =>
   Boolean(social.url),
 );
+const websiteUrl = safePublicUrl(process.env.NEXT_PUBLIC_WEBSITE) ?? "#";
 
 export function Dashboard() {
   const [category, setCategory] = useState<"All tools" | Category>("All tools"),
@@ -127,9 +140,9 @@ export function Dashboard() {
         </button>
         <a
           className="product-link"
-          href={process.env.NEXT_PUBLIC_WEBSITE}
+          href={websiteUrl}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           aria-label="Visit CollabCircle"
         >
           <span>A Product of CollabCircle</span>
@@ -227,7 +240,12 @@ export function Dashboard() {
         </a>
         <div className="footer-links">
           {socials.map((s) => (
-            <a key={s.name} href={s.url} target="_blank" rel="noreferrer">
+            <a
+              key={s.name}
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {s.name}
             </a>
           ))}

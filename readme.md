@@ -37,9 +37,15 @@ JWT contents are decoded, not signature-verified. Decoding does not prove that a
 | Data & Text       | Text/JSON diff, JSON Schema, case/line/base tools, structured data and transformation pipelines        |
 | Knowledge         | Searchable web, Unicode/entity, Git, Docker, Kubernetes and ENV references                             |
 
-Product features include favorites, recent tools, direct `?tool=` links, `Ctrl/Cmd+K` search focus, persistent light/dark themes, locally saved pipeline recipes, local-data clearing, lazy-loaded workspaces, and installable PWA/offline support.
+Product features include recent tools, direct `?tool=` links, `Ctrl/Cmd+K` search focus, persistent light/dark themes, locally saved pipeline recipes, local-data clearing, lazy-loaded workspaces, and installable PWA/offline support.
 
 Reference datasets are bundled with the application. DevKitCircle deliberately excludes live DNS, WHOIS, public-IP, remote API testing, reputation scanning, breach lookup and other features that would transmit user input.
+
+## Security controls
+
+Every route ships with a restrictive Content Security Policy and defense-in-depth response headers. The production policy limits scripts, styles, fonts, images, workers, manifests, media, and network connections to the application origin or the specific local browser schemes required by the tools. Framing, plugins, external form submission, browser hardware permissions, referrer leakage, MIME sniffing, and the framework identification header are disabled.
+
+The service worker caches only successful same-origin responses and never substitutes the HTML shell for a missing script or asset. Public social links accept only HTTP and HTTPS URLs. SVG image imports containing scripts, inline event handlers, or external resource references are rejected before decoding.
 
 ## Application structure
 
@@ -105,7 +111,7 @@ npm run build
 
 Current Chrome, Edge, Firefox, and Safari releases are supported. Clipboard, Web Crypto, service-worker, and install features require HTTPS or localhost. Deploy to any Next.js-compatible host; no application backend or database is needed. Rebuild after changing social links.
 
-DevKitCircle contains no analytics or telemetry. Favorites, recents, theme preferences, and saved recipes use browser-local storage only and can be erased from the footer.
+DevKitCircle contains no analytics or telemetry. Recents, theme preferences, and saved recipes use browser-local storage only and can be erased from the footer.
 
 ## Contributing
 
