@@ -9,7 +9,6 @@ import {
   Moon,
   Search,
   ShieldCheck,
-  Star,
   Sun,
   Trash2,
   X,
@@ -40,12 +39,10 @@ export function Dashboard() {
   const [category, setCategory] = useState<"All tools" | Category>("All tools"),
     [search, setSearch] = useState(""),
     [active, setActive] = useState<ToolDefinition | null>(null),
-    [favorites, setFavorites] = useState<string[]>([]),
     [recent, setRecent] = useState<string[]>([]),
     [theme, setTheme] = useState<"light" | "dark">("light");
   const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    setFavorites(JSON.parse(localStorage.getItem("devkit-favorites") || "[]"));
     setRecent(JSON.parse(localStorage.getItem("devkit-recent") || "[]"));
     const savedTheme =
       localStorage.getItem("devkit-theme") === "dark" ? "dark" : "light";
@@ -77,13 +74,6 @@ export function Dashboard() {
   function closeTool() {
     setActive(null);
     history.replaceState(null, "", location.pathname);
-  }
-  function toggleFavorite(id: string) {
-    const next = favorites.includes(id)
-      ? favorites.filter((item) => item !== id)
-      : [...favorites, id];
-    setFavorites(next);
-    localStorage.setItem("devkit-favorites", JSON.stringify(next));
   }
   function toggleTheme() {
     const next = theme === "light" ? "dark" : "light";
@@ -194,17 +184,6 @@ export function Dashboard() {
                       <span className="tool-icon">
                         <tool.icon />
                       </span>
-                      <button
-                        className={
-                          favorites.includes(tool.id)
-                            ? "favorite active"
-                            : "favorite"
-                        }
-                        onClick={() => toggleFavorite(tool.id)}
-                        aria-label={`${favorites.includes(tool.id) ? "Remove from" : "Add to"} favorites`}
-                      >
-                        <Star size={15} />
-                      </button>
                     </div>
                     <button
                       className="tool-card-main"
@@ -252,7 +231,6 @@ export function Dashboard() {
           <button
             onClick={() => {
               localStorage.clear();
-              setFavorites([]);
               setRecent([]);
             }}
           >

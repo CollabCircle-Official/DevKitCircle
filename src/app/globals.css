@@ -322,25 +322,6 @@ main {
   color: #94a3b8;
   flex: 0 0 auto;
 }
-.favorite {
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  color: #94a3b8;
-  border-radius: 7px;
-  cursor: pointer;
-}
-.favorite:hover,
-.favorite.active {
-  color: #f59e0b;
-  background: #fef3c7;
-}
-.favorite.active svg {
-  fill: currentColor;
-}
 .tool-card:hover {
   transform: translateY(-3px);
   border-color: #7fb7dc;
@@ -1321,11 +1302,6 @@ footer,
   background: var(--panel2);
   color: #275878;
 }
-.favorite:hover,
-.favorite.active {
-  color: #b77935;
-  background: #f7ecdc;
-}
 .diff-output .added,
 .contrast-score .pass,
 .jwt-status.good {
@@ -1393,11 +1369,6 @@ footer,
 [data-theme="dark"] .reference-code {
   background: #091522;
   color: #b9dcf1;
-}
-[data-theme="dark"] .favorite:hover,
-[data-theme="dark"] .favorite.active {
-  background: #3c3020;
-  color: #e0ad69;
 }
 [data-theme="dark"] .diff-output .added,
 [data-theme="dark"] .contrast-score .pass,
