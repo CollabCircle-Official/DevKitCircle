@@ -179,23 +179,26 @@ export function Dashboard() {
             {filtered.length ? (
               <div className="tool-grid">
                 {filtered.map((tool) => (
-                  <article className="tool-card" key={tool.id}>
+                  <button
+                    className="tool-card"
+                    key={tool.id}
+                    onClick={() => openTool(tool)}
+                    aria-label={`Open ${tool.title}`}
+                  >
                     <div className="card-top">
                       <span className="tool-icon">
                         <tool.icon />
                       </span>
-                    </div>
-                    <button
-                      className="tool-card-main"
-                      onClick={() => openTool(tool)}
-                    >
-                      <span>
-                        <h3>{tool.title}</h3>
-                        <p>{tool.description}</p>
+                      <span className="card-category">{tool.category}</span>
+                      <span className="card-arrow" aria-hidden="true">
+                        <ChevronRight />
                       </span>
-                      <ChevronRight />
-                    </button>
-                  </article>
+                    </div>
+                    <div className="card-copy">
+                      <h3>{tool.title}</h3>
+                      <p>{tool.description}</p>
+                    </div>
+                  </button>
                 ))}
               </div>
             ) : (
