@@ -7,6 +7,7 @@ const config = [
       "next-env.d.ts",
       ".next/**",
       ".next-dev/**",
+      ".next-*/**",
       "node_modules/**",
     ],
   },

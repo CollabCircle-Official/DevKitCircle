@@ -37,15 +37,15 @@ JWT contents are decoded, not signature-verified. Decoding does not prove that a
 | Data & Text       | Text/JSON diff, JSON Schema, case/line/base tools, structured data and transformation pipelines        |
 | Knowledge         | Searchable web, Unicode/entity, Git, Docker, Kubernetes and ENV references                             |
 
-Product features include recent tools, direct `?tool=` links, `Ctrl/Cmd+K` search focus, persistent light/dark themes, locally saved pipeline recipes, local-data clearing, lazy-loaded workspaces, and installable PWA/offline support.
+Product features include recent tools, direct `?tool=` links, `Ctrl/Cmd+K` search focus, persistent light/dark themes, locally saved pipeline recipes, local-data clearing, lazy-loaded workspaces, and installable PWA support.
 
 Reference datasets are bundled with the application. DevKitCircle deliberately excludes live DNS, WHOIS, public-IP, remote API testing, reputation scanning, breach lookup and other features that would transmit user input.
 
 ## Security controls
 
-Every route ships with a restrictive Content Security Policy and defense-in-depth response headers. The production policy limits scripts, styles, fonts, images, workers, manifests, media, and network connections to the application origin or the specific local browser schemes required by the tools. Framing, plugins, external form submission, browser hardware permissions, referrer leakage, MIME sniffing, and the framework identification header are disabled.
+Every page request receives a cryptographically random CSP nonce. Next.js applies that nonce to its framework and hydration scripts, while `strict-dynamic` rejects injected scripts and unrestricted inline script execution. The policy also limits styles, fonts, images, workers, manifests, media, and network connections to the application origin or the specific local browser schemes required by the tools. Framing, plugins, external form submission, browser hardware permissions, referrer leakage, MIME sniffing, and the framework identification header are disabled.
 
-The service worker caches only successful same-origin responses and never substitutes the HTML shell for a missing script or asset. Public social links accept only HTTP and HTTPS URLs. SVG image imports containing scripts, inline event handlers, or external resource references are rejected before decoding.
+The service worker caches only successful same-origin non-document responses, so nonce-bearing HTML is never reused, and it never substitutes the HTML shell for a missing script or asset. Public social links accept only HTTP and HTTPS URLs. SVG image imports containing scripts, inline event handlers, or external resource references are rejected before decoding.
 
 ## Application structure
 

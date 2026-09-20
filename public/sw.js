@@ -1,5 +1,5 @@
 const CACHE = "devkitcircle-v2";
-const CORE = ["/", "/manifest.webmanifest", "/devkitcircle-logo.png"];
+const CORE = ["/manifest.webmanifest", "/devkitcircle-logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE)));
@@ -34,6 +34,7 @@ self.addEventListener("fetch", (event) => {
         if (
           response.ok &&
           response.type === "basic" &&
+          event.request.mode !== "navigate" &&
           !cacheControl.includes("no-store")
         ) {
           const cache = await caches.open(CACHE);
@@ -44,9 +45,6 @@ self.addEventListener("fetch", (event) => {
       .catch(async () => {
         const cached = await caches.match(event.request);
         if (cached) return cached;
-        if (event.request.mode === "navigate") {
-          return (await caches.match("/")) || Response.error();
-        }
         return Response.error();
       }),
   );

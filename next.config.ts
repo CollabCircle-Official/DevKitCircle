@@ -1,28 +1,8 @@
 import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 
-const securityHeaders = (development: boolean) => {
-  const contentSecurityPolicy = [
-    "default-src 'self'",
-    `script-src 'self' 'unsafe-inline'${development ? " 'unsafe-eval'" : ""}`,
-    "script-src-attr 'none'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
-    "font-src 'self' data:",
-    "connect-src 'self'",
-    "media-src 'self' blob:",
-    "worker-src 'self' blob:",
-    "manifest-src 'self'",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-src 'none'",
-    "frame-ancestors 'none'",
-    ...(development ? [] : ["upgrade-insecure-requests"]),
-  ].join("; ");
-
+const securityHeaders = () => {
   return [
-    { key: "Content-Security-Policy", value: contentSecurityPolicy },
     {
       key: "Strict-Transport-Security",
       value: "max-age=63072000; includeSubDomains; preload",
@@ -55,7 +35,7 @@ const nextConfig = (phase: string): NextConfig => {
     reactStrictMode: true,
     poweredByHeader: false,
     async headers() {
-      return [{ source: "/(.*)", headers: securityHeaders(development) }];
+      return [{ source: "/(.*)", headers: securityHeaders() }];
     },
     env: {
       NEXT_PUBLIC_LINKEDIN: process.env.Linkedin,
