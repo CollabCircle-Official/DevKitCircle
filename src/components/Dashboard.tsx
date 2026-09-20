@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   ArrowUpRight,
   ChevronRight,
-  Menu,
   Search,
   ShieldCheck,
   X,
@@ -26,8 +26,7 @@ const socials = [
 export function Dashboard() {
   const [category, setCategory] = useState<"All tools" | Category>("All tools"),
     [search, setSearch] = useState(""),
-    [active, setActive] = useState<ToolDefinition | null>(null),
-    [menu, setMenu] = useState(false);
+    [active, setActive] = useState<ToolDefinition | null>(null);
   const filtered = useMemo(
     () =>
       tools.filter(
@@ -43,7 +42,15 @@ export function Dashboard() {
     <div className="site-shell">
       <header className="topbar">
         <a className="brand" href="#">
-          <span className="brand-mark">D</span>
+          <span className="brand-logo-crop">
+            <Image
+              src="/devkitcircle-logo.png"
+              alt=""
+              width={500}
+              height={500}
+              priority
+            />
+          </span>
           <span>
             DevKitCircle<small>by CollabCircle</small>
           </span>
@@ -53,9 +60,8 @@ export function Dashboard() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search utilities…"
+            placeholder="Search tools..."
           />
-          <kbd>⌘ K</kbd>
         </label>
         <a
           className="product-link"
@@ -67,48 +73,30 @@ export function Dashboard() {
           <span>A Product of CollabCircle</span>
           <ArrowUpRight size={15} />
         </a>
-        <button
-          className="menu-button"
-          onClick={() => setMenu(!menu)}
-          aria-label="Toggle categories"
-        >
-          <Menu />
-        </button>
       </header>
       <div className="app-body">
-        <aside className={menu ? "sidebar open" : "sidebar"}>
-          <div className="side-label">Categories</div>
-          {categories.map((c) => (
-            <button
-              key={c}
-              className={category === c ? "active" : ""}
-              onClick={() => {
-                setCategory(c);
-                setMenu(false);
-              }}
-            >
-              {c}
-              <span>
-                {c === "All tools"
-                  ? tools.length
-                  : tools.filter((t) => t.category === c).length}
-              </span>
-            </button>
-          ))}
-        </aside>
         <main>
           <section className="hero">
             <h1>
-              Developer tools,
-              <br />
-              <em>in your browser.</em>
+              Developer tools, <em>in your browser.</em>
             </h1>
             <p>
-              Convert, inspect, format, and generate locally. Your input never
-              leaves your device.
+              Convert, inspect, format, and generate 100% Free and Private. Your
+              input never leaves your device.
             </p>
           </section>
           <section className="tools-section">
+            <nav className="category-tabs" aria-label="Tool categories">
+              {categories.map((item) => (
+                <button
+                  key={item}
+                  className={category === item ? "active" : ""}
+                  onClick={() => setCategory(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </nav>
             <div className="section-heading">
               <h2>{category}</h2>
               <span>{filtered.length} tools</span>
@@ -144,7 +132,14 @@ export function Dashboard() {
       </div>
       <footer>
         <a className="brand footer-brand" href="#">
-          <span className="brand-mark">D</span>
+          <span className="brand-logo-crop">
+            <Image
+              src="/devkitcircle-logo.png"
+              alt=""
+              width={500}
+              height={500}
+            />
+          </span>
           <span>
             DevKitCircle<small>by CollabCircle</small>
           </span>

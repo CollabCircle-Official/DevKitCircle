@@ -19,7 +19,8 @@ export type ToolId =
   | "url"
   | "status"
   | "uuid"
-  | "color";
+  | "color"
+  | "hex-library";
 
 export interface ToolDefinition {
   id: ToolId;

@@ -42,6 +42,28 @@ const samples: Partial<Record<ToolId, string>> = {
   color: "#6366F1",
 };
 
+const webSafeColors = ["00", "33", "66", "99", "CC", "FF"].flatMap((red) =>
+  ["00", "33", "66", "99", "CC", "FF"].flatMap((green) =>
+    ["00", "33", "66", "99", "CC", "FF"].map((blue) => {
+      const hex = `#${red}${green}${blue}`;
+      const rgb = [red, green, blue].map((value) => parseInt(value, 16));
+      const max = Math.max(...rgb);
+      const min = Math.min(...rgb);
+      let family = "Neutral";
+      if (max !== min) {
+        const [r, g, b] = rgb;
+        if (r === max && g >= b) family = g > r * 0.7 ? "Yellow" : "Red";
+        else if (r === max) family = b > r * 0.7 ? "Purple" : "Red";
+        else if (g === max && b >= r) family = b > g * 0.7 ? "Cyan" : "Green";
+        else if (g === max) family = r > g * 0.7 ? "Yellow" : "Green";
+        else if (r > b * 0.7) family = "Purple";
+        else family = "Blue";
+      }
+      return { hex, rgb: `rgb(${rgb.join(", ")})`, family };
+    }),
+  ),
+);
+
 export function ToolWorkspace({ id }: { id: ToolId }) {
   if (id === "config") return <ConfigTool />;
   if (id === "env") return <EnvTool />;
@@ -55,6 +77,7 @@ export function ToolWorkspace({ id }: { id: ToolId }) {
   if (id === "url") return <UrlTool />;
   if (id === "status") return <StatusTool />;
   if (id === "uuid") return <IdTool />;
+  if (id === "hex-library") return <HexLibraryTool />;
   return <ColorTool />;
 }
 
@@ -653,6 +676,73 @@ function ColorTool() {
           </div>
         </>
       )}
+    </>
+  );
+}
+
+function HexLibraryTool() {
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState(webSafeColors[0]);
+  const normalizedQuery = query.trim().toLowerCase();
+  const colors = webSafeColors.filter((color) =>
+    `${color.hex} ${color.rgb} ${color.family}`
+      .toLowerCase()
+      .includes(normalizedQuery),
+  );
+
+  return (
+    <>
+      <div className="hex-library-toolbar">
+        <label className="field grow">
+          <span>Search by HEX, RGB, or color family</span>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="#3366FF, rgb(51, 102, 255), or Blue"
+          />
+        </label>
+        <span className="hex-result-count">{colors.length} colors</span>
+      </div>
+
+      <div className="selected-color">
+        <span
+          className="selected-color-swatch"
+          style={{ background: selected.hex }}
+        />
+        <div>
+          <strong>{selected.hex}</strong>
+          <span>
+            {selected.rgb} · {selected.family}
+          </span>
+        </div>
+        <CopyButton value={selected.hex} label="Copy HEX" />
+      </div>
+
+      {colors.length ? (
+        <div className="hex-color-grid">
+          {colors.map((color) => (
+            <button
+              key={color.hex}
+              className={selected.hex === color.hex ? "selected" : ""}
+              onClick={() => setSelected(color)}
+              title={`${color.hex} · ${color.rgb}`}
+              aria-label={`Select ${color.hex}`}
+            >
+              <span style={{ background: color.hex }} />
+              <code>{color.hex}</code>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="empty compact-empty">
+          <h3>No colors found</h3>
+          <p>Search with a full or partial HEX, RGB value, or color family.</p>
+        </div>
+      )}
+      <p className="hex-library-note">
+        Web-safe colors use six evenly spaced values per RGB channel, creating
+        216 colors that render consistently across displays.
+      </p>
     </>
   );
 }

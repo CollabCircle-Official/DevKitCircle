@@ -12,6 +12,7 @@ import {
   Radio,
   Dices,
   Palette,
+  SwatchBook,
 } from "lucide-react";
 import type { Category, ToolDefinition } from "@/types";
 
@@ -128,5 +129,13 @@ export const tools: ToolDefinition[] = [
     category: "Generators",
     icon: Palette,
     tags: ["hex", "rgb", "hsl", "wcag"],
+  },
+  {
+    id: "hex-library",
+    title: "HEX Color Library",
+    description: "Browse, search, and copy 216 web-safe colors.",
+    category: "Generators",
+    icon: SwatchBook,
+    tags: ["hex", "colors", "palette", "web-safe"],
   },
 ];
