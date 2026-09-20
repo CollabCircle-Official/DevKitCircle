@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "transforms": [
+        {
+          "type": "response.headers",
+          "op": "delete",
+          "target": { "key": "server" }
+        },
+        {
+          "type": "response.headers",
+          "op": "delete",
+          "target": { "key": "x-vercel-id" }
+        },
+        {
+          "type": "response.headers",
+          "op": "delete",
+          "target": { "key": "x-vercel-cache" }
+        },
+        {
+          "type": "response.headers",
+          "op": "delete",
+          "target": { "key": "x-vercel-error" }
+        }
+      ]
+    }
+  ]
+}

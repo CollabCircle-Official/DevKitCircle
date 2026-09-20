@@ -47,6 +47,8 @@ Every page request receives a cryptographically random CSP nonce. Next.js applie
 
 The service worker caches only successful same-origin non-document responses, so nonce-bearing HTML is never reused, and it never substitutes the HTML shell for a missing script or asset. Public social links accept only HTTP and HTTPS URLs. SVG image imports containing scripts, inline event handlers, or external resource references are rejected before decoding.
 
+Vercel deployment transforms remove the platform `Server` header and related `x-vercel-*` response headers to reduce passive technology fingerprinting. These rules take effect only after a new Vercel deployment.
+
 ## Application structure
 
 ```mermaid
