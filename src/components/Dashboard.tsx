@@ -1,17 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import {
   ArrowUpRight,
   ChevronRight,
+  Moon,
   Search,
   ShieldCheck,
+  Star,
+  Sun,
+  Trash2,
   X,
 } from "lucide-react";
 import { categories, tools } from "@/data/tools";
 import type { Category, ToolDefinition } from "@/types";
-import { ToolWorkspace } from "./ToolWorkspace";
+const ToolWorkspace = dynamic(
+  () => import("./ToolWorkspace").then((module) => module.ToolWorkspace),
+  {
+    ssr: false,
+    loading: () => <div className="workspace-loading">Loading tool…</div>,
+  },
+);
 
 // These references must remain static so Next.js can replace them at build time.
 const socials = [
@@ -21,12 +32,65 @@ const socials = [
   { name: "X", url: process.env.NEXT_PUBLIC_X },
   { name: "Instagram", url: process.env.NEXT_PUBLIC_INSTAGRAM },
   { name: "YouTube", url: process.env.NEXT_PUBLIC_YOUTUBE },
-].filter((social): social is { name: string; url: string } => Boolean(social.url));
+].filter((social): social is { name: string; url: string } =>
+  Boolean(social.url),
+);
 
 export function Dashboard() {
   const [category, setCategory] = useState<"All tools" | Category>("All tools"),
     [search, setSearch] = useState(""),
-    [active, setActive] = useState<ToolDefinition | null>(null);
+    [active, setActive] = useState<ToolDefinition | null>(null),
+    [favorites, setFavorites] = useState<string[]>([]),
+    [recent, setRecent] = useState<string[]>([]),
+    [theme, setTheme] = useState<"light" | "dark">("light");
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    setFavorites(JSON.parse(localStorage.getItem("devkit-favorites") || "[]"));
+    setRecent(JSON.parse(localStorage.getItem("devkit-recent") || "[]"));
+    const savedTheme =
+      localStorage.getItem("devkit-theme") === "dark" ? "dark" : "light";
+    setTheme(savedTheme);
+    document.documentElement.dataset.theme = savedTheme;
+    const requested = new URLSearchParams(location.search).get("tool");
+    const tool = tools.find((item) => item.id === requested);
+    if (tool) setActive(tool);
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+      if (event.key === "Escape") setActive(null);
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, []);
+  function openTool(tool: ToolDefinition) {
+    setActive(tool);
+    const next = [tool.id, ...recent.filter((id) => id !== tool.id)].slice(
+      0,
+      6,
+    );
+    setRecent(next);
+    localStorage.setItem("devkit-recent", JSON.stringify(next));
+    history.replaceState(null, "", `?tool=${tool.id}`);
+  }
+  function closeTool() {
+    setActive(null);
+    history.replaceState(null, "", location.pathname);
+  }
+  function toggleFavorite(id: string) {
+    const next = favorites.includes(id)
+      ? favorites.filter((item) => item !== id)
+      : [...favorites, id];
+    setFavorites(next);
+    localStorage.setItem("devkit-favorites", JSON.stringify(next));
+  }
+  function toggleTheme() {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem("devkit-theme", next);
+  }
   const filtered = useMemo(
     () =>
       tools.filter(
@@ -58,11 +122,19 @@ export function Dashboard() {
         <label className="search">
           <Search size={17} />
           <input
+            ref={searchRef}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tools..."
           />
         </label>
+        <button
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={`Use ${theme === "light" ? "dark" : "light"} theme`}
+        >
+          {theme === "light" ? <Moon size={17} /> : <Sun size={17} />}
+        </button>
         <a
           className="product-link"
           href={process.env.NEXT_PUBLIC_WEBSITE}
@@ -101,23 +173,50 @@ export function Dashboard() {
               <h2>{category}</h2>
               <span>{filtered.length} tools</span>
             </div>
+            {category === "All tools" && recent.length > 0 && !search && (
+              <div className="recent-tools">
+                <span>Recent</span>
+                {recent.map((id) => {
+                  const tool = tools.find((t) => t.id === id);
+                  return tool ? (
+                    <button key={id} onClick={() => openTool(tool)}>
+                      {tool.title}
+                    </button>
+                  ) : null;
+                })}
+              </div>
+            )}
             {filtered.length ? (
               <div className="tool-grid">
                 {filtered.map((tool) => (
-                  <button
-                    className="tool-card"
-                    key={tool.id}
-                    onClick={() => setActive(tool)}
-                  >
+                  <article className="tool-card" key={tool.id}>
                     <div className="card-top">
                       <span className="tool-icon">
                         <tool.icon />
                       </span>
-                      <ChevronRight />
+                      <button
+                        className={
+                          favorites.includes(tool.id)
+                            ? "favorite active"
+                            : "favorite"
+                        }
+                        onClick={() => toggleFavorite(tool.id)}
+                        aria-label={`${favorites.includes(tool.id) ? "Remove from" : "Add to"} favorites`}
+                      >
+                        <Star size={15} />
+                      </button>
                     </div>
-                    <h3>{tool.title}</h3>
-                    <p>{tool.description}</p>
-                  </button>
+                    <button
+                      className="tool-card-main"
+                      onClick={() => openTool(tool)}
+                    >
+                      <span>
+                        <h3>{tool.title}</h3>
+                        <p>{tool.description}</p>
+                      </span>
+                      <ChevronRight />
+                    </button>
+                  </article>
                 ))}
               </div>
             ) : (
@@ -150,13 +249,22 @@ export function Dashboard() {
               {s.name}
             </a>
           ))}
+          <button
+            onClick={() => {
+              localStorage.clear();
+              setFavorites([]);
+              setRecent([]);
+            }}
+          >
+            <Trash2 size={13} /> Clear local data
+          </button>
         </div>
       </footer>
       {active && (
         <div
           className="modal-backdrop"
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setActive(null);
+            if (e.target === e.currentTarget) closeTool();
           }}
         >
           <section
@@ -177,7 +285,7 @@ export function Dashboard() {
               </div>
               <button
                 className="close"
-                onClick={() => setActive(null)}
+                onClick={closeTool}
                 aria-label="Close tool"
               >
                 <X />

@@ -28,6 +28,7 @@ import {
   FileButton,
   Select,
 } from "./ToolUI";
+import { ExtendedWorkspace } from "./ExtendedWorkspace";
 
 const samples: Partial<Record<ToolId, string>> = {
   config: "",
@@ -78,7 +79,8 @@ export function ToolWorkspace({ id }: { id: ToolId }) {
   if (id === "status") return <StatusTool />;
   if (id === "uuid") return <IdTool />;
   if (id === "hex-library") return <HexLibraryTool />;
-  return <ColorTool />;
+  if (id === "color") return <ColorTool />;
+  return <ExtendedWorkspace id={id} />;
 }
 
 function Transform({

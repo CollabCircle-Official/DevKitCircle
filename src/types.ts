@@ -5,7 +5,9 @@ export type Category =
   | "Security & Hashes"
   | "Formatters"
   | "Network"
-  | "Generators";
+  | "Generators"
+  | "Data & Text"
+  | "Knowledge";
 export type ToolId =
   | "config"
   | "env"
@@ -20,7 +22,26 @@ export type ToolId =
   | "status"
   | "uuid"
   | "color"
-  | "hex-library";
+  | "hex-library"
+  | "time"
+  | "diff"
+  | "schema"
+  | "cron"
+  | "mock"
+  | "network-calc"
+  | "security-headers"
+  | "qr"
+  | "image"
+  | "encoding-lab"
+  | "crypto-lab"
+  | "compression"
+  | "text-lab"
+  | "structured-data"
+  | "permissions"
+  | "unicode-ref"
+  | "web-ref"
+  | "devops-ref"
+  | "pipeline";
 
 export interface ToolDefinition {
   id: ToolId;

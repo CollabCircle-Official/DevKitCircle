@@ -27,13 +27,19 @@ JWT contents are decoded, not signature-verified. Decoding does not prove that a
 
 ## Features
 
-| Category          | Utilities                                                             |
-| ----------------- | --------------------------------------------------------------------- |
-| Converters        | JSON ↔ YAML/TOML, ENV ↔ JSON, CSV → JSON/Markdown                   |
-| Security & Hashes | Base64/URL/HTML codecs, JWT debugger, MD5/SHA hashing                 |
-| Formatters        | JSON/SQL formatter and minifier, regex inspector                      |
-| Network           | CURL → Fetch/Axios/Python/Go, URL parser, offline HTTP status lookup  |
-| Generators        | Bulk UUID/ULID generation, color conversion, WCAG contrast inspection |
+| Category          | Utilities                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------ |
+| Converters        | JSON/YAML/TOML, ENV, CSV/Markdown, timestamps, local images, gzip/deflate/ZIP                          |
+| Security & Hashes | Base64/URL/HTML, JWT, hashes, binary encodings, HMAC, AES-GCM, PKCE, SRI, RSA/ECDSA and PEM inspection |
+| Formatters        | JSON/SQL formatting and regex inspection                                                               |
+| Network           | CURL conversion, URL parsing, HTTP statuses, IPv4/CIDR calculation                                     |
+| Generators        | UUID/ULID, colors, WCAG contrast, cron, mock records, QR codes and Linux permissions                   |
+| Data & Text       | Text/JSON diff, JSON Schema, case/line/base tools, structured data and transformation pipelines        |
+| Knowledge         | Searchable web, Unicode/entity, Git, Docker, Kubernetes and ENV references                             |
+
+Product features include favorites, recent tools, direct `?tool=` links, `Ctrl/Cmd+K` search focus, persistent light/dark themes, locally saved pipeline recipes, local-data clearing, lazy-loaded workspaces, and installable PWA/offline support.
+
+Reference datasets are bundled with the application. DevKitCircle deliberately excludes live DNS, WHOIS, public-IP, remote API testing, reputation scanning, breach lookup and other features that would transmit user input.
 
 ## Application structure
 
@@ -97,7 +103,9 @@ npm run build
 
 ## Browser support and deployment
 
-Current Chrome, Edge, Firefox, and Safari releases are supported. Clipboard actions require HTTPS or localhost. Deploy to any Next.js-compatible host; no application backend or database is needed. Rebuild after changing social links.
+Current Chrome, Edge, Firefox, and Safari releases are supported. Clipboard, Web Crypto, service-worker, and install features require HTTPS or localhost. Deploy to any Next.js-compatible host; no application backend or database is needed. Rebuild after changing social links.
+
+DevKitCircle contains no analytics or telemetry. Favorites, recents, theme preferences, and saved recipes use browser-local storage only and can be erased from the footer.
 
 ## Contributing
 
